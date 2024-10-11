@@ -1,6 +1,8 @@
+param environment string = split(resourceGroup().name, '-')[1]
+
 param location string = resourceGroup().location
-param storageAccountName string = 'lab01${uniqueString(resourceGroup().id)}'
-param containerName string = 'profilepictures'
+param storageAccountName string = 'counterappstorageacc${environment}'
+param containerName string = 'storage${environment}'
 
 resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   name: storageAccountName
@@ -18,10 +20,33 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   }
 }
 
-resource app_service 'Microsoft.Web/serverfarms@2023-12-01' = {
-  name: 'todo-app'
+var config = {
+  dev: {
+    name: 'S1'
+    tier: 'Standard'
+  }
+  prod: {
+    name: 'B1'
+    tier: 'Basic'
+  }
+}
+
+resource app_service_plan 'Microsoft.Web/serverfarms@2023-12-01' = {
+  name: 'todo-app-${environment}'
+  location: location
+  sku: config[environment]
+}
+
+resource app_service 'Microsoft.Web/sites@2023-12-01' = {
+  name: 'todo-app-site-${environment}'
   location: location
   properties: {
-    
+    serverFarmId: app_service_plan.id
+  }
+  resource app_settings 'config' = {
+    name: 'appsettings'
+    properties: {
+      WEBSITE_RUN_FROM_PACKAGE: '1'
+    }
   }
 }
