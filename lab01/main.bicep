@@ -18,3 +18,10 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   }
 }
 
+resource app_service 'Microsoft.Web/serverfarms@2023-12-01' = {
+  name: 'todo-app'
+  location: location
+  properties: {
+    
+  }
+}
